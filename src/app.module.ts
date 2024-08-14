@@ -5,9 +5,12 @@ import { CoffeesModule } from './coffees/coffees.module';
 import { UsersModule } from './users/users.module';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { IamModule } from './iam/iam.module';
+import { ConfigModule } from '@nestjs/config';
+// import { JwtModule } from '@nestjs/jwt';
 
 @Module({
   imports: [
+    ConfigModule.forRoot(),
     CoffeesModule,
     UsersModule,
     TypeOrmModule.forRoot({

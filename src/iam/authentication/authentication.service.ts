@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -10,12 +11,18 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { HashingService } from '../hashing/hashing.service';
+import jwtConfig from 'config/jwt.config';
+import { ConfigType } from '@nestjs/config';
+import { JwtService } from '@nestjs/jwt';
 
 @Injectable()
 export class AuthenticationService {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
     private readonly hashingService: HashingService,
+    @Inject(jwtConfig.KEY)
+    private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async signUp({ email, password }: SignUpDto): Promise<User> {
@@ -32,7 +39,10 @@ export class AuthenticationService {
     }
   }
 
-  async signIn({ email, password }: SignInDto): Promise<boolean> {
+  async signIn({
+    email,
+    password,
+  }: SignInDto): Promise<{ accessToken: string }> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
       throw new NotFoundException('No user with this e-mail was found');
@@ -46,6 +56,13 @@ export class AuthenticationService {
       throw new BadRequestException('Incorrect password');
     }
 
-    return true;
+    const accessToken = await this.jwtService.signAsync(
+      {
+        sub: user.id,
+        email: user.email,
+      },
+      this.jwtConfiguration,
+    );
+    return { accessToken };
   }
 }
