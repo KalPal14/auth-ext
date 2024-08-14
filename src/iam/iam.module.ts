@@ -6,7 +6,7 @@ import { AuthenticationController } from './authentication/authentication.contro
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { User } from 'src/users/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
-import jwtConfig from 'config/jwt.config';
+import jwtConfig from 'src/iam/config/jwt.config';
 import { JwtModule } from '@nestjs/jwt';
 import { APP_GUARD } from '@nestjs/core';
 import { AccessTokenGuard } from './authentication/guards/access-token/access-token.guard';

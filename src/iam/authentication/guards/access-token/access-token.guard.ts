@@ -7,7 +7,7 @@ import {
 } from '@nestjs/common';
 import { ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
-import jwtConfig from 'config/jwt.config';
+import jwtConfig from 'src/iam/config/jwt.config';
 import { Request } from 'express';
 import { REQUEST_USER_KEY } from 'src/iam/iam.constants';
 
