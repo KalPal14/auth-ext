@@ -19,7 +19,10 @@ import { ActiveUserData } from '../interfaces/active-user-data.interface';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
 import { randomUUID } from 'crypto';
 import { RefreshTokenPayload } from '../interfaces/refresh-token-payload.interface';
-import { RefreshTokenIdsStorage } from './refresh-token-ids.storage';
+import {
+  InvalidatedRefreshTokenErr,
+  RefreshTokenIdsStorage,
+} from './refresh-token-ids.storage';
 
 @Injectable()
 export class AuthenticationService {
@@ -74,20 +77,15 @@ export class AuthenticationService {
           this.jwtConfiguration,
         );
 
-      const isTokenValid = await this.refreshTokenIdsStorage.validate(
-        sub,
-        tokenId,
-      );
-      if (!isTokenValid) {
-        console.log(1);
-        throw new UnauthorizedException();
-      }
-
-      console.log(2);
+      await this.refreshTokenIdsStorage.validate(sub, tokenId);
       await this.refreshTokenIdsStorage.invalidate(sub);
       const user = await this.userRepository.findOneByOrFail({ id: sub });
       return this.generateTokens(user);
-    } catch {
+    } catch (err) {
+      if (err instanceof InvalidatedRefreshTokenErr) {
+        // Additional security actions. For example, notify the user
+        throw new UnauthorizedException('Access denied');
+      }
       throw new UnauthorizedException();
     }
   }

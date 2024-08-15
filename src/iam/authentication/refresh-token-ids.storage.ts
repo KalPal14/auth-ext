@@ -5,6 +5,8 @@ import {
 } from '@nestjs/common';
 import { Redis } from 'ioredis';
 
+export class InvalidatedRefreshTokenErr extends Error {}
+
 @Injectable()
 export class RefreshTokenIdsStorage
   implements OnApplicationBootstrap, OnApplicationShutdown
@@ -24,9 +26,12 @@ export class RefreshTokenIdsStorage
     await this.redisClient.set(this.getKey(userId), tokenId);
   }
 
-  async validate(userId: number, tokenId: string): Promise<boolean> {
+  async validate(userId: number, tokenId: string): Promise<true> {
     const savedTokenId = await this.redisClient.get(this.getKey(userId));
-    return tokenId === savedTokenId;
+    if (savedTokenId !== tokenId) {
+      throw new InvalidatedRefreshTokenErr();
+    }
+    return true;
   }
 
   async invalidate(userId: number): Promise<void> {
