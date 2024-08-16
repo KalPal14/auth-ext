@@ -12,7 +12,10 @@ import { CreateCoffeeDto } from './dto/create-coffee.dto';
 import { UpdateCoffeeDto } from './dto/update-coffee.dto';
 import { Role } from 'src/users/enums/role.enum';
 import { Roles } from 'src/iam/authorization/decorators/role.decorator';
+import { Auth } from 'src/iam/authentication/decorators/auth.decorator';
+import { AuthType } from 'src/iam/authentication/enums/auth-type.enum';
 
+@Auth(AuthType.ApiKey, AuthType.Bearer)
 @Controller('coffees')
 export class CoffeesController {
   constructor(private readonly coffeesService: CoffeesService) {}

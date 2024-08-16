@@ -1,5 +1,12 @@
-import { Column, Entity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Role } from '../enums/role.enum';
+import { ApiKey } from './api-key.entity';
 
 @Entity()
 export class User {
@@ -14,4 +21,8 @@ export class User {
 
   @Column({ enum: Role, default: Role.Regular })
   role: Role;
+
+  @JoinTable()
+  @ManyToMany(() => ApiKey, (apiKey) => apiKey.user)
+  apiKey: ApiKey;
 }

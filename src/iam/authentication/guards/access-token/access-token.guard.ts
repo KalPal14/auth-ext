@@ -20,10 +20,13 @@ export class AccessTokenGuard implements CanActivate {
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    try {
-      const request = context.switchToHttp().getRequest<Request>();
-      const accessToken = this.getAccessToken(request);
+    const request = context.switchToHttp().getRequest<Request>();
+    const accessToken = this.extractAccessToken(request);
+    if (!accessToken) {
+      throw new UnauthorizedException();
+    }
 
+    try {
       const payload = await this.jwtService.verifyAsync(
         accessToken,
         this.jwtConfiguration,
@@ -36,7 +39,8 @@ export class AccessTokenGuard implements CanActivate {
     }
   }
 
-  private getAccessToken(request: Request): string {
-    return request.headers.authorization.split(' ')[1];
+  private extractAccessToken(request: Request): string {
+    const [type, token] = request.headers.authorization.split(' ');
+    return type === 'Bearer' ? token : undefined;
   }
 }
