@@ -16,6 +16,7 @@ import { RoleGuard } from './authorization/guards/role/role.guard';
 import { ApiKeyService } from './authentication/api-key.service';
 import { ApiKeyGuard } from './authentication/guards/api-key/api-key.guard';
 import { ApiKey } from 'src/users/entities/api-key.entity';
+import { OtpAuthService } from './authentication/otp-auth.service';
 
 @Module({
   imports: [
@@ -33,6 +34,7 @@ import { ApiKey } from 'src/users/entities/api-key.entity';
     RefreshTokenIdsStorage,
     AuthenticationService,
     ApiKeyService,
+    OtpAuthService,
   ],
   controllers: [AuthenticationController],
 })

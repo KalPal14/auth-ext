@@ -13,7 +13,7 @@ import { User } from 'src/users/entities/user.entity';
 import { Repository } from 'typeorm';
 import { HashingService } from '../hashing/hashing.service';
 import jwtConfig from 'src/iam/config/jwt.config';
-import { ConfigType } from '@nestjs/config';
+import { ConfigService, ConfigType } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { ActiveUserData } from '../interfaces/active-user-data.interface';
 import { RefreshTokensDto } from './dto/refresh-tokens.dto';
@@ -23,6 +23,7 @@ import {
   InvalidatedRefreshTokenErr,
   RefreshTokenIdsStorage,
 } from './refresh-token-ids.storage';
+import { OtpAuthService } from './otp-auth.service';
 
 @Injectable()
 export class AuthenticationService {
@@ -33,6 +34,8 @@ export class AuthenticationService {
     private readonly jwtConfiguration: ConfigType<typeof jwtConfig>,
     private readonly jwtService: JwtService,
     private readonly refreshTokenIdsStorage: RefreshTokenIdsStorage,
+    private readonly otpAuthService: OtpAuthService,
+    private readonly configService: ConfigService,
   ) {}
 
   async signUp({ email, password }: SignUpDto): Promise<User> {
@@ -52,10 +55,16 @@ export class AuthenticationService {
   async signIn({
     email,
     password,
+    code,
   }: SignInDto): Promise<{ accessToken: string; refreshToken: string }> {
     const user = await this.userRepository.findOneBy({ email });
     if (!user) {
       throw new NotFoundException('No user with this e-mail was found');
+    }
+
+    if (user.otpEnabled) {
+      const isCodeValid = this.otpAuthService.verifyCode(code, user.otpSecret);
+      if (!isCodeValid) throw new UnauthorizedException('Invalid 2fa code');
     }
 
     const isPasswordValid = await this.hashingService.compare(

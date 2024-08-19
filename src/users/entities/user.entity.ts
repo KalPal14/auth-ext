@@ -22,6 +22,12 @@ export class User {
   @Column({ enum: Role, default: Role.Regular })
   role: Role;
 
+  @Column({ default: false })
+  otpEnabled: boolean;
+
+  @Column({ nullable: true })
+  otpSecret: string;
+
   @JoinTable()
   @ManyToMany(() => ApiKey, (apiKey) => apiKey.user)
   apiKey: ApiKey;
