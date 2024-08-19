@@ -31,13 +31,13 @@ export class AuthenticationController {
 
   @HttpCode(HttpStatus.OK)
   @Post('sign-in')
-  async signIn(@Body() signInDto: SignInDto) {
+  signIn(@Body() signInDto: SignInDto) {
     return this.authenticationService.signIn(signInDto);
   }
 
   @HttpCode(HttpStatus.OK)
   @Post('refresh-tokens')
-  async refreshTokens(@Body() refreshTokensDto: RefreshTokensDto) {
+  refreshTokens(@Body() refreshTokensDto: RefreshTokensDto) {
     return this.authenticationService.refreshTokens(refreshTokensDto);
   }
 

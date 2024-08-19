@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { HashingService } from './hashing/hashing.service';
 import { BcryptService } from './hashing/bcrypt.service';
 import { AuthenticationService } from './authentication/authentication.service';
@@ -17,6 +17,13 @@ import { ApiKeyService } from './authentication/api-key.service';
 import { ApiKeyGuard } from './authentication/guards/api-key/api-key.guard';
 import { ApiKey } from 'src/users/entities/api-key.entity';
 import { OtpAuthService } from './authentication/otp-auth.service';
+import { SessionAuthenticationService } from './session-authentication/session-authentication/session-authentication.service';
+import { SessionAuthenticationController } from './session-authentication/session-authentication/session-authentication.controller';
+import * as passport from 'passport';
+import * as session from 'express-session';
+import { UserSerializer } from './session-authentication/serializers/user.serializer';
+import RedisStore from 'connect-redis';
+import { Redis } from 'ioredis';
 
 @Module({
   imports: [
@@ -35,7 +42,25 @@ import { OtpAuthService } from './authentication/otp-auth.service';
     AuthenticationService,
     ApiKeyService,
     OtpAuthService,
+    SessionAuthenticationService,
+    UserSerializer,
   ],
-  controllers: [AuthenticationController],
+  controllers: [AuthenticationController, SessionAuthenticationController],
 })
-export class IamModule {}
+export class IamModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(
+        session({
+          store: new RedisStore({ client: new Redis(6379, 'localhost') }),
+          secret: process.env.SESSION_SECRET,
+          resave: false,
+          saveUninitialized: false,
+          cookie: { sameSite: true, httpOnly: true },
+        }),
+        passport.initialize(),
+        passport.session(),
+      )
+      .forRoutes('*');
+  }
+}
